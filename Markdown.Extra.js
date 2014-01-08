@@ -575,9 +575,9 @@
   Markdown.Extra.prototype.fencedCodeBlocks = function(text) {
     var self = this;
 
-    function encodeCode(code) {
+    function encodeCode(code, lang) {
       if (self.userHighlightFn) {
-        code = self.userHighlightFn(code);
+        code = self.userHighlightFn(code, lang);
 
       } else {
         code = code.replace(/&/g, "&amp;");
@@ -610,7 +610,7 @@
       }
 
       var html = ['<pre', preclass, '><code', codeclass, '>',
-                  encodeCode(codeblock), '</code></pre>'].join('');
+                  encodeCode(codeblock, language), '</code></pre>'].join('');
 
       // replace codeblock with placeholder until postConversion step
       return self.hashExtraBlock(html);

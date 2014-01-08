@@ -241,6 +241,7 @@
     if ("highlighter" in options) {
       extra.googleCodePrettify = options.highlighter === 'prettify';
       extra.highlightJs = options.highlighter === 'highlight';
+      extra.userHighlightFn = (typeof options.highlighter === 'function') ? options.highlighter : null; 
     }
 
     if ("table_class" in options) {
@@ -572,17 +573,24 @@
 
   // Find and convert gfm-inspired fenced code blocks into html.
   Markdown.Extra.prototype.fencedCodeBlocks = function(text) {
+    var self = this;
+
     function encodeCode(code) {
-      code = code.replace(/&/g, "&amp;");
-      code = code.replace(/</g, "&lt;");
-      code = code.replace(/>/g, "&gt;");
-      // These were escaped by PageDown before postNormalization 
-      code = code.replace(/~D/g, "$$");
-      code = code.replace(/~T/g, "~");
+      if (self.userHighlightFn) {
+        code = self.userHighlightFn(code);
+
+      } else {
+        code = code.replace(/&/g, "&amp;");
+        code = code.replace(/</g, "&lt;");
+        code = code.replace(/>/g, "&gt;");
+        // These were escaped by PageDown before postNormalization 
+        code = code.replace(/~D/g, "$$");
+        code = code.replace(/~T/g, "~");
+      }
+
       return code;
     }
 
-    var self = this;
     text = text.replace(/(?:^|\n)```(.*)\n([\s\S]*?)\n```/g, function(match, m1, m2) {
       var language = m1, codeblock = m2;
 
@@ -590,7 +598,10 @@
       var preclass = self.googleCodePrettify ? ' class="prettyprint"' : '';
       var codeclass = '';
       if (language) {
-        if (self.googleCodePrettify || self.highlightJs) {
+        if (self.pygments) {
+          // using pygments on the server
+
+        } else if (self.googleCodePrettify || self.highlightJs) {
           // use html5 language- class names. supported by both prettify and highlight.js
           codeclass = ' class="language-' + language + '"';
         } else {
